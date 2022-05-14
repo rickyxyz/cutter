@@ -31,6 +31,9 @@
             const enemy_color = "red";
             const enemy_height = 50;
             const enemy_width = 50;
+
+            let last_spawn = 0;
+            const spawn_interval = 2000;
             const enemy_list = [];
 
             // setup canvas
@@ -91,6 +94,31 @@
                 }
             }
 
+            // randomly generate enemies
+            function generateEnemy() {
+                if(Date.now() - last_spawn < spawn_interval){
+                    return;
+                }
+
+                last_spawn = Date.now()
+
+                let min = 2;
+                let max = 5;
+
+                let num = min + Math.floor(Math.random() * (max-min));
+
+                for(let i = 0; i < num; i++){
+                    let x = Math.floor(Math.random() * (canvas.width - 100));
+                    let y = Math.floor(Math.random() * (canvas.height - 100));
+
+                    enemy_list.push(new Sprite({ x: x, y: y }, enemy_color));
+                }
+
+                enemy_list.forEach(enemy => {
+                    enemy.draw();
+                });
+            }
+
             const player = new Sprite(
                 {
                     x: canvas.width * 0.5 - player_width * 0.5,
@@ -100,11 +128,6 @@
             );
             
             player.draw();
-
-            enemy_list.push(new Sprite({ x: 400, y: 200 }, enemy_color));
-            enemy_list.forEach(enemy => {
-                enemy.draw();
-            });
 
             // function to draw player trail
             function drawTrail(startPos, endPos) {
@@ -201,6 +224,15 @@
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+                generateEnemy();
+
+                var i = enemy_list.length;
+                while (i--) {
+                    if (enemy_list[i].isAlive) {
+                        enemy_list[i].update;
+                    } else enemy_list.splice(i, 1);
+                }
+
                 enemy_list.forEach(enemy => {
                     if(enemy.isAlive) enemy.update();
                 });
@@ -209,6 +241,7 @@
                 setTimeout(animate, 60);
             }
 
+            generateEnemy();
             // animate();
         </script>
     </body>
