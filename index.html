@@ -20,6 +20,16 @@
 
         <script>
             // setup variables
+            const player_color = "blue";
+            const player_height = 50;
+            const player_width = 50;
+
+            const trail_color = "green";
+
+            const enemy_color = "red";
+            const enemy_height = 50;
+            const enemy_width = 50;
+            const enemy_list = [];
 
             // setup canvas
             const canvas = document.getElementById("canvas");
@@ -49,7 +59,12 @@
 
                 draw() {
                     ctx.fillStyle = this.color;
-                    ctx.fillRect(this.position.x, this.position.y, 50, 50);
+                    ctx.fillRect(
+                        this.position.x,
+                        this.position.y,
+                        player_width,
+                        player_height
+                    );
                 }
 
                 update() {
@@ -67,37 +82,64 @@
 
             const player = new Sprite(
                 {
-                    x: canvas.width * 0.5 - 25,
-                    y: canvas.height * 0.5 - 25,
+                    x: canvas.width * 0.5 - player_width * 0.5,
+                    y: canvas.height * 0.5 - player_height * 0.5,
                 },
-                "blue"
+                player_color
             );
 
+            const enemy = new Sprite({ x: 400, y: 200 }, enemy_color);
+            enemy.draw();
+
             player.draw();
+
+            // function to draw player trail
+            function drawTrail(startPos, endPos) {
+                ctx.strokeStyle = trail_color;
+                ctx.lineWidth = 10;
+
+                ctx.beginPath();
+                ctx.moveTo(startPos.x, startPos.y);
+                ctx.lineTo(endPos.x, endPos.y);
+                ctx.stroke();
+            }
+
+            // helper function to detect collision between lines
 
             // player move eventListener
             canvas.addEventListener("click", (event) => {
                 let boundary = canvas.getBoundingClientRect();
                 let pos = {
-                    x: event.clientX - boundary.left,
-                    y: event.clientY - boundary.top,
+                    x: event.clientX - boundary.left - player_width * 0.5,
+                    y: event.clientY - boundary.top - player_height * 0.5,
+                };
+
+                let oldPos = {
+                    x: Math.round(player.position.x + player_width * 0.5),
+                    y: Math.round(player.position.y + player_width * 0.5),
+                };
+
+                let newPos = {
+                    x: Math.round(pos.x + player_width * 0.5),
+                    y: Math.round(pos.y + player_height * 0.5),
                 };
 
                 player.position = {
-                    x: pos.x - 25,
-                    y: pos.y - 25,
+                    x: pos.x,
+                    y: pos.y,
                 };
+
+                drawTrail(oldPos, newPos);
+
+                // detect collision
+                
             });
 
             function animate() {
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 player.update();
-
-                // detect collision
-
-
-                setTimeout(animate, 100);
+                setTimeout(animate, 60);
             }
 
             // animate();
