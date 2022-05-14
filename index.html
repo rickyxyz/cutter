@@ -19,7 +19,9 @@
         <canvas id="canvas"> </canvas>
 
         <script>
-            // setup the canvas
+            // setup variables
+
+            // setup canvas
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
             canvas.width = 1024;
@@ -30,7 +32,7 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // helper function to get click position on canvas
-            function clickPosition(event){
+            function clickPosition(event) {
                 let boundary = canvas.getBoundingClientRect();
                 return {
                     x: event.clientX - boundary.left,
@@ -38,6 +40,42 @@
                 };
             }
 
+            // class for drawing the entities
+            class Sprite {
+                constructor(position, color) {
+                    this.position = position;
+                    this.color = color;
+                }
+
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.position.x, this.position.y, 50, 50);
+                }
+
+                update() {
+                    this.draw();
+                }
+
+                get position() {
+                    return this._position;
+                }
+
+                set position(newPos) {
+                    this._position = newPos;
+                }
+            }
+
+            const player = new Sprite(
+                {
+                    x: canvas.width * 0.5 - 25,
+                    y: canvas.height * 0.5 - 25,
+                },
+                "blue"
+            );
+
+            player.draw();
+
+            // player move eventListener
             canvas.addEventListener("click", (event) => {
                 let boundary = canvas.getBoundingClientRect();
                 let pos = {
@@ -45,32 +83,21 @@
                     y: event.clientY - boundary.top,
                 };
 
-                ctx.fillStyle = "green";
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y, 5, 0, 2 * Math.PI);
-                ctx.fill();
+                player.position = {
+                    x: pos.x - 25,
+                    y: pos.y - 25,
+                };
             });
-
-            class Sprite {
-                constructor(position) {
-                    this.position = position;
-                }
-
-                draw() {
-                    ctx.fillStyle = "blue";
-                    ctx.fillRect(this.position.x, this.position.y, 50, 50);
-                }
-            }
-
-            const player = new Sprite({
-                x: canvas.width * 0.5 - 25,
-                y: canvas.height * 0.5 - 25,
-            });
-
-            player.draw();
 
             function animate() {
-                window.requestAnimationFrame(animate);
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                player.update();
+
+                // detect collision
+
+
+                setTimeout(animate, 100);
             }
 
             // animate();
