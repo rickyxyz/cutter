@@ -55,6 +55,7 @@
                 constructor(position, color) {
                     this.position = position;
                     this.color = color;
+                    this.isAlive = true;
                 }
 
                 draw() {
@@ -71,12 +72,20 @@
                     this.draw();
                 }
 
+                set position(newPos) {
+                    this._position = newPos;
+                }
+
+                set isAlive(isAlive){
+                    this._isAlive = isAlive;
+                }
+
                 get position() {
                     return this._position;
                 }
 
-                set position(newPos) {
-                    this._position = newPos;
+                get isAlive() {
+                    return this._isAlive;
                 }
             }
 
@@ -87,11 +96,13 @@
                 },
                 player_color
             );
-
-            const enemy = new Sprite({ x: 400, y: 200 }, enemy_color);
-            enemy.draw();
-
+            
             player.draw();
+
+            enemy_list.push(new Sprite({ x: 400, y: 200 }, enemy_color));
+            enemy_list.forEach(enemy => {
+                enemy.draw();
+            });
 
             // function to draw player trail
             function drawTrail(startPos, endPos) {
@@ -121,6 +132,8 @@
                 return false;
             }
 
+            // detect collision between line and rectangle
+            // function from http://www.jeffreythompson.org/collision-detection/line-rect.php
             function lineRect(x1, y1, x2, y2, rx, ry, rw, rh){
                 left = lineLine(x1,y1,x2,y2, rx,ry,rx, ry+rh);
                 right = lineLine(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
@@ -158,29 +171,36 @@
 
                 drawTrail(oldPos, newPos);
 
-                // detect collision between line and rectangle
-                // function from http://www.jeffreythompson.org/collision-detection/line-rect.php
-
                 let x1 = oldPos.x;
                 let y1 = oldPos.y;
                 let x2 = newPos.x;
                 let y2 = newPos.y;
-                let rx = enemy.position.x;
-                let ry = enemy.position.y;
                 let rw = enemy_width;
                 let rh = enemy_height;
 
-                console.log(lineRect(x1, y1, x2, y2, rx, ry, rw, rh));
+                enemy_list.forEach(enemy => {
+                    let rx = enemy.position.x;
+                    let ry = enemy.position.y;
+
+                    if(lineRect(x1, y1, x2, y2, rx, ry, rw, rh)){
+                        enemy.isAlive = false;
+                    }
+                });
             });
 
             function animate() {
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                enemy_list.forEach(enemy => {
+                    if(enemy.isAlive) enemy.update();
+                });
+                
                 player.update();
                 setTimeout(animate, 60);
             }
 
-            // animate();
+            animate();
         </script>
     </body>
 </html>
