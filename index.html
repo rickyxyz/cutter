@@ -1,50 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cutter</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Cutter</title>
+    </head>
 
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
+            background-color: #222;
             display: flex;
-            align-items: center;
             justify-content: center;
-            max-height: 100vh;
-            margin: 0;
-            padding: 1rem;
-            background-color: #444;
-        }
-
-        #canvas {
-            height: 90%;
-            width: 90%;
         }
     </style>
 
-</head>
-<body>
-    <canvas id="canvas">
+    <body>
+        <canvas id="canvas"> </canvas>
 
-    </canvas>
+        <script>
+            // setup the canvas
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 1024;
+            canvas.height = 576;
 
-    <script>
-        // setup the canvas
-        const canvas = document.getElementById("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = 1024;
-        canvas.height = 576;
+            // setup the background
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // setup the background
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    </script>
-</body>
+            // helper function to get click position on canvas
+            function clickPosition(event){
+                let boundary = canvas.getBoundingClientRect();
+                return {
+                    x: event.clientX - boundary.left,
+                    y: event.clientY - boundary.top,
+                };
+            }
+
+            canvas.addEventListener("click", (event) => {
+                let boundary = canvas.getBoundingClientRect();
+                let pos = {
+                    x: event.clientX - boundary.left,
+                    y: event.clientY - boundary.top,
+                };
+
+                ctx.fillStyle = "green";
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+
+            class Sprite {
+                constructor(position) {
+                    this.position = position;
+                }
+
+                draw() {
+                    ctx.fillStyle = "blue";
+                    ctx.fillRect(this.position.x, this.position.y, 50, 50);
+                }
+            }
+
+            const player = new Sprite({
+                x: canvas.width * 0.5 - 25,
+                y: canvas.height * 0.5 - 25,
+            });
+
+            player.draw();
+
+            function animate() {
+                window.requestAnimationFrame(animate);
+            }
+
+            // animate();
+        </script>
+    </body>
 </html>
