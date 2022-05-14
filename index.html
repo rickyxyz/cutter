@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cutter</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            background-color: #444;
+        }
+
+        #canvas {
+            height: 90%;
+            width: 90%;
+        }
+    </style>
+
+</head>
+<body>
+    <canvas id="canvas">
+
+    </canvas>
+
+    <script>
+        // setup the canvas
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 1024;
+        canvas.height = 576;
+
+        // setup the background
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    </script>
+</body>
+</html>
