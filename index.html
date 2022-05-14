@@ -24,6 +24,8 @@
             const player_height = 50;
             const player_width = 50;
 
+            let last_move = 0;
+            const move_interval = 200;
             const trail_color = "green";
 
             const enemy_color = "red";
@@ -148,6 +150,13 @@
 
             // player move eventListener
             canvas.addEventListener("click", (event) => {
+                // limit how fast the movement occurs
+                if(Date.now() - last_move < move_interval){
+                    return;
+                }
+
+                last_move = Date.now();
+
                 let boundary = canvas.getBoundingClientRect();
                 let pos = {
                     x: event.clientX - boundary.left - player_width * 0.5,
@@ -200,7 +209,7 @@
                 setTimeout(animate, 60);
             }
 
-            animate();
+            // animate();
         </script>
     </body>
 </html>
