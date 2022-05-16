@@ -20,6 +20,8 @@
 
         <script>
             // setup variables
+            let isOver = false;
+            
             const player_color = "blue";
             const player_height = 50;
             const player_width = 50;
@@ -35,7 +37,7 @@
             const enemy_color = "red";
             const enemy_height = 50;
             const enemy_width = 50;
-            const enemy_speed = 0.0025;
+            const enemy_speed = 0.003;
 
             let last_spawn = 0;
             const spawn_interval = 2000;
@@ -268,7 +270,9 @@
             }
 
             function main() {
-                window.requestAnimationFrame(main, 60);
+                if(!isOver){
+                    window.requestAnimationFrame(main, 60);
+                }
 
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -289,6 +293,7 @@
 
                         if(rectRect(player.position.x, player.position.y, player_width, player_height, enemy.position.x, enemy.position.y, enemy_width, enemy_height)){
                             player.color = "green";
+                            isOver = true;
                             // console.log("🛑");
                         }
 
