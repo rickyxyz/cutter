@@ -30,6 +30,8 @@
             const move_interval = 200;
             const trail_color = `30, 90, 30`;
 
+            const min_spawn_distance = 150;
+            const max_spawn_distance = 300;
             const enemy_color = "red";
             const enemy_height = 50;
             const enemy_width = 50;
@@ -100,6 +102,7 @@
             }
 
             // randomly generate enemies
+            // enemy will spawn around the player
             function generateEnemy() {
                 if (Date.now() - last_spawn < spawn_interval) {
                     return;
@@ -111,10 +114,13 @@
                 let max = 5;
 
                 let num = min + Math.floor(Math.random() * (max - min));
-
+                
                 for (let i = 0; i < num; i++) {
-                    let x = Math.floor(Math.random() * (canvas.width - 100));
-                    let y = Math.floor(Math.random() * (canvas.height - 100));
+                    let dist = min_spawn_distance + Math.round(Math.random() * (max_spawn_distance - min_spawn_distance));
+                    let direction = Math.random() * 2 * Math.PI;
+
+                    let x = Math.round(player.position.x + Math.sin(direction) * dist);
+                    let y = Math.round(player.position.y + Math.cos(direction) * dist);
 
                     enemy_list.push(new Sprite({ x: x, y: y }, enemy_color));
                 }
