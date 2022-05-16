@@ -35,6 +35,7 @@
             const enemy_color = "red";
             const enemy_height = 50;
             const enemy_width = 50;
+            const enemy_speed = 0.002;
 
             let last_spawn = 0;
             const spawn_interval = 2000;
@@ -128,6 +129,11 @@
                 enemy_list.forEach((enemy) => {
                     enemy.draw();
                 });
+            }
+
+            function approachPlayer(sprite) {
+                sprite.position.x = sprite.position.x + (player.position.x - sprite.position.x) * enemy_speed;
+                sprite.position.y = sprite.position.y + (player.position.y - sprite.position.y) * enemy_speed;
             }
 
             const player = new Sprite(
@@ -260,7 +266,10 @@
                 }
                 
                 enemy_list.forEach((enemy) => {
-                    if (enemy.isAlive) enemy.update();
+                    if (enemy.isAlive){
+                        approachPlayer(enemy);
+                        enemy.update();
+                    }
                 });
                 
                 trail_opacity -= 0.1;
