@@ -20,21 +20,31 @@
 
         <script>
             // setup variables
+            let isOver = false;
+            
             const player_color = "blue";
             const player_height = 50;
             const player_width = 50;
 
             let last_move = 0;
+            let trail_opacity = 1;
+            let last_pos = {};
             const move_interval = 200;
-            const trail_color = "green";
+            const trail_color = `30, 90, 30`;
 
+            const min_spawn_distance = 150;
+            const max_spawn_distance = 300;
             const enemy_color = "red";
             const enemy_height = 50;
             const enemy_width = 50;
+            const enemy_speed = 0.003;
 
             let last_spawn = 0;
             const spawn_interval = 2000;
             const enemy_list = [];
+
+            let score = 0;
+            let combo = 0;
 
             // setup canvas
             const canvas = document.getElementById("canvas");
@@ -81,8 +91,12 @@
                     this._position = newPos;
                 }
 
-                set isAlive(isAlive){
+                set isAlive(isAlive) {
                     this._isAlive = isAlive;
+                }
+
+                set color(color){
+                    this._color = color;
                 }
 
                 get position() {
@@ -92,31 +106,44 @@
                 get isAlive() {
                     return this._isAlive;
                 }
+
+                get color(){
+                    return this._color;
+                }
             }
 
             // randomly generate enemies
+            // enemy will spawn around the player
             function generateEnemy() {
-                if(Date.now() - last_spawn < spawn_interval){
+                if (Date.now() - last_spawn < spawn_interval) {
                     return;
                 }
 
-                last_spawn = Date.now()
+                last_spawn = Date.now();
 
                 let min = 2;
                 let max = 5;
 
-                let num = min + Math.floor(Math.random() * (max-min));
+                let num = min + Math.floor(Math.random() * (max - min));
+                
+                for (let i = 0; i < num; i++) {
+                    let dist = min_spawn_distance + Math.round(Math.random() * (max_spawn_distance - min_spawn_distance));
+                    let direction = Math.random() * 2 * Math.PI;
 
-                for(let i = 0; i < num; i++){
-                    let x = Math.floor(Math.random() * (canvas.width - 100));
-                    let y = Math.floor(Math.random() * (canvas.height - 100));
+                    let x = Math.round(player.position.x + Math.sin(direction) * dist);
+                    let y = Math.round(player.position.y + Math.cos(direction) * dist);
 
                     enemy_list.push(new Sprite({ x: x, y: y }, enemy_color));
                 }
 
-                enemy_list.forEach(enemy => {
+                enemy_list.forEach((enemy) => {
                     enemy.draw();
                 });
+            }
+
+            function approachPlayer(sprite) {
+                sprite.position.x = sprite.position.x + (player.position.x - sprite.position.x) * enemy_speed;
+                sprite.position.y = sprite.position.y + (player.position.y - sprite.position.y) * enemy_speed;
             }
 
             const player = new Sprite(
@@ -126,12 +153,16 @@
                 },
                 player_color
             );
-            
+
+            last_pos = {
+                x: player.position.x + player_width * 0.5,
+                y: player.position.y + player_height * 0.5,
+            };
             player.draw();
 
             // function to draw player trail
             function drawTrail(startPos, endPos) {
-                ctx.strokeStyle = trail_color;
+                ctx.strokeStyle = `rgb(${trail_color}, ${trail_opacity})`;
                 ctx.lineWidth = 10;
 
                 ctx.beginPath();
@@ -142,12 +173,12 @@
 
             // helper function to detect collision between lines
             // function from http://www.jeffreythompson.org/collision-detection/line-line.php
-            function lineLine(x1, y1, x2, y2, x3, y3, x4, y4){
-                uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
-                uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+            function lineLine(x1, y1, x2, y2, x3, y3, x4, y4) {
+                uA = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+                uB = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
 
-                intersectionX = x1 + (uA * (x2-x1));
-                intersectionY = y1 + (uA * (y2-y1));
+                intersectionX = x1 + uA * (x2 - x1);
+                intersectionY = y1 + uA * (y2 - y1);
 
                 if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
                     // ctx.fillStyle = "yellow";
@@ -159,13 +190,22 @@
 
             // detect collision between line and rectangle
             // function from http://www.jeffreythompson.org/collision-detection/line-rect.php
-            function lineRect(x1, y1, x2, y2, rx, ry, rw, rh){
-                left = lineLine(x1,y1,x2,y2, rx,ry,rx, ry+rh);
-                right = lineLine(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
-                top = lineLine(x1,y1,x2,y2, rx,ry, rx+rw,ry);
-                bottom = lineLine(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh);
+            function lineRect(x1, y1, x2, y2, rx, ry, rw, rh) {
+                left = lineLine(x1, y1, x2, y2, rx, ry, rx, ry + rh);
+                right = lineLine(x1, y1, x2, y2, rx + rw, ry, rx + rw, ry + rh);
+                top = lineLine(x1, y1, x2, y2, rx, ry, rx + rw, ry);
+                bottom = lineLine(x1, y1, x2, y2, rx, ry + rh, rx + rw, ry + rh);
 
                 if (left === true || right === true || top === true || bottom === true) {
+                    return true;
+                }
+                return false;
+            }
+
+            // detect collilsion between rectangles
+            // function from http://www.jeffreythompson.org/collision-detection/rect-rect.php
+            function rectRect(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h){
+                if (r1x + r1w >= r2x && r1x <= r2x + r2w && r1y + r1h >= r2y && r1y <= r2y + r2h) { 
                     return true;
                 }
                 return false;
@@ -174,7 +214,7 @@
             // player move eventListener
             canvas.addEventListener("click", (event) => {
                 // limit how fast the movement occurs
-                if(Date.now() - last_move < move_interval){
+                if (Date.now() - last_move < move_interval) {
                     return;
                 }
 
@@ -191,6 +231,8 @@
                     y: player.position.y + player_width * 0.5,
                 };
 
+                last_pos = oldPos;
+
                 let newPos = {
                     x: pos.x + player_width * 0.5,
                     y: pos.y + player_height * 0.5,
@@ -201,7 +243,7 @@
                     y: pos.y,
                 };
 
-                drawTrail(oldPos, newPos);
+                trail_opacity = 1;
 
                 let x1 = oldPos.x;
                 let y1 = oldPos.y;
@@ -210,39 +252,67 @@
                 let rw = enemy_width;
                 let rh = enemy_height;
 
-                enemy_list.forEach(enemy => {
+                enemy_list.forEach((enemy) => {
                     let rx = enemy.position.x;
                     let ry = enemy.position.y;
 
-                    if(lineRect(x1, y1, x2, y2, rx, ry, rw, rh)){
+                    if (lineRect(x1, y1, x2, y2, rx, ry, rw, rh)) {
                         enemy.isAlive = false;
+                        score += 1;
                     }
                 });
             });
 
-            function animate() {
+            function renderUI () {
+                ctx.fillStyle = "black";
+                ctx.font = '25px tahoma';
+                ctx.fillText(`Score: ${score}`, 10, 30);
+            }
+
+            function main() {
+                if(!isOver){
+                    window.requestAnimationFrame(main, 60);
+                }
+
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+                
                 generateEnemy();
-
+                
                 var i = enemy_list.length;
                 while (i--) {
                     if (enemy_list[i].isAlive) {
                         enemy_list[i].update;
                     } else enemy_list.splice(i, 1);
                 }
+                
+                player.color = player_color;
+                enemy_list.forEach((enemy) => {
+                    if (enemy.isAlive){
+                        approachPlayer(enemy);
 
-                enemy_list.forEach(enemy => {
-                    if(enemy.isAlive) enemy.update();
+                        if(rectRect(player.position.x, player.position.y, player_width, player_height, enemy.position.x, enemy.position.y, enemy_width, enemy_height)){
+                            player.color = "green";
+                            isOver = true;
+                        }
+
+                        enemy.update();
+                    }
+                });
+                
+                trail_opacity -= 0.1;
+                
+                drawTrail(last_pos, {
+                    x: player.position.x + player_width * 0.5,
+                    y: player.position.y + player_height * 0.5,
                 });
                 
                 player.update();
-                setTimeout(animate, 60);
+
+                renderUI();
             }
 
-            generateEnemy();
-            animate();
+            main();
         </script>
     </body>
 </html>
